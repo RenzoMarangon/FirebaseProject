@@ -1,27 +1,34 @@
 import React,{ useState, useContext, useEffect } from 'react'
 import { Button } from '@mui/material'
-import db from '../firebase'
-import { GoogleAuthProvider, getAuth, signInWithPopup, onAuthStateChanged, signOut, signInWithRedirect } from "firebase/auth";
+import db,{ app } from '../firebase'
+import { GoogleAuthProvider, getAuth, signInWithPopup, onAuthStateChanged, updateProfile, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword  } from "firebase/auth";
 import LoginContext from '../context/LoginContext';
-import { addDoc, collection, setDoc, doc, getDocs, getDoc } from "firebase/firestore";
+import { getDocs, doc, collection, setDoc, onSnapshot  } from "firebase/firestore"
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const Login = () => {
 
-
-    const [ userID, setUserID ] = useState('');
-
-    const [ buyerData, setBuyerData ] = useState({
-      mail:'',
+    const [ inputValue, setInputValue ] = useState({
       name:'',
+      mail:'',
       image:'',
+      password:''
     });
+
+    const  [ currentUser, setCurrentUser ] = useState({})
 
     const { userProvider, setUserProvider } = useContext(LoginContext);
 
+    const [ userData, setUserData ] = useState({
+      name:'',
+      mail:'',
+      image:'',
+    })
+
     useEffect(()=>{
-      // isUserRegister('asd') ? console.log('si esta') : console.log('no esta')
-      isUserRegister('YlDZ6J22bSbSEcZJP2x3fCzC8pr1')
-    },[buyerData])
+      userExist('elbrbr@gmail.com')
+
+    },[currentUser])
 
     const googleAuth = () => {
         const provider = new GoogleAuthProvider();
@@ -29,76 +36,194 @@ const Login = () => {
 
         signInWithPopup( auth, provider )
         .then(( result ) =>{
-          
           const { email, displayName, photoURL } = result.user
-
-          // const credential = GoogleAuthProvider.credentialFromResult(result);
-          // const token = credential.accessToken;
-          // const user = result.user;
-
-          setBuyerData({
-            mail:email,
+          const us = {
             name:displayName,
-            image:photoURL
-          })
+            mail:email,
+            image:photoURL,
+          }
+          console.log(us)
 
-
-
-
+          userExist(email) && userRegister( email, us )
         })
     }
 
+
+    const userLoginByMail    = (e) => {
+
+      e.preventDefault();
+
+      const email = inputValue.mail;
+      const password = inputValue.password;
+      const auth = getAuth(app);
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user.providerData[0])
+        })
+        .catch((error) => {
+          console.log(error.code)
+          console.log(error.message)
+        });
+  }
+
     const mostrarUsuario = () => {
+      const auth = getAuth()
+      onAuthStateChanged( auth, ( user ) => {
+        user ? (console.log(`usuario ${user.uid}`)
+        ) : (
+          (alert('No se inicio sesion'))
+        )
+      })
+    }
+
+    const actualizarUsuario = () => {
       const auth = getAuth();
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-             setUserID(user.uid);
-        } else {
-        }
+      updateProfile(auth.currentUser, {
+        displayName: "Groiaco", photoURL: "https://example.com/jane-q-user/profile.jpg"
+      }).then(() => {
+        alert('Actualizacion etsitosa')
+      }).catch((error) => {
+        alert('Aprende a actualizar flaco')
       });
     }
 
-    const salirDeLaCuenta = () =>{
-      const auth = getAuth();
-      {
-        mostrarUsuario && (
-          signOut(auth).then(() => {
-            console.log('Se fue de la cuenta')
-          }).catch((error) => {
-            // An error happened.
-          })
-        )
+
+
+    const userRegister = async( userId, userData ) => {
+      const userCollection = collection(db,'users');
+      const userDoc = doc( db, 'users', userId )
+      const addUserToFirestore = await setDoc( userDoc, userData )
+      console.log('registro etsitoso')
+    }
+
+    const userExist = async( id ) =>{
+
+      const userDoc = collection(db, "users");
+      
+      const userData = await getDocs(userDoc);
+      
+      const userFilter = userData.docs.filter( userId => userId.data().mail == id )
+      // userData.docs.map(( usdat ) => {
+      //   console.log(usdat.data().mail);
+      // })
+      let isRegister = false;
+      userFilter.length > 0 ? isRegister = true : isRegister = false;
+      return isRegister;
+
+    }
+
+
+    const userRegisterByMail = (e) => {
+      e.preventDefault();
+
+      const email = inputValue.mail;
+      const password = inputValue.password;
+      const auth = getAuth(app);
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          
+          const user = userCredential.user;
+          console.log(user)
+        })
+        .catch((error) => {
+          console.log(error.code)
+          console.log(error.message)
+        });
+
+
+        const user = {
+          name:inputValue.name,
+          mail:inputValue.mail,
+          image:''
+         }
+  
+        userRegister(inputValue.mail,user)
+    }
+
+
+    const mostrar = () => {
+      const ob = {
+        name:'chchcich',
+        mail:'chchcich@gmail.com',
+        image:'chchcich.jpg'
       }
+      
+      userRegister(ob.mail,ob)
+
+      setCurrentUser(ob);
+      
     }
 
+    const inputSendImage = async(e) => {
+      const imgRef = e.target.files[0]
+
+      const strge = getStorage(app);
+      const strgeageRef = ref(strge, `/profilePictures/${inputValue.name}`);
+      
+      uploadBytes(strgeageRef, imgRef).then((snapshot) => {
+        console.log('Uploaded a blob or file!');
+        
+      });
+
+      getDownloadURL(strgeageRef).then((url)=>{
+        setInputValue({
+          ...inputValue,
+          image:url,
+        })
+      })
+
+
+
+      // setInputValue({
+      //   ...inputValue,
+      //   image:imgRef.name,
+      // })
+
+      
+    }
+
+    const inputEnter = (e) => {
+      const { name, value } = e.target;
+      setInputValue({
+        ...inputValue,
+        [name]:value,
+      })
+    }
+
+    const mox = () =>{
+      console.log(inputValue)
+    }
     
-    const registerUsers = async(id,object) =>{
-
-      const fireStore = collection(db, "users");
-      const addToFirestore = await setDoc(doc(db,"users",id),
-      object
-      )}
-
-    const mostrar = () =>{
-      setBuyerData({name:'negro'});
-    }
-
-    const isUserRegister = async(id) => {
-
-      let isIn = false;
-      const docRef = doc(db, "users", id);
-      const docSnapShot = await getDoc(docRef);
-      docSnapShot!='undefined' ? (isIn = true) : (isIn = false);
-    
-      console.log(docSnapShot)
-    }
-
   return (
     <>
+    
       <div>Login</div>
-      <Button onClick={ googleAuth }>Acceder</Button>
-      <Button onClick={ mostrar }>Mostrar</Button>
-      <Button onClick={ salirDeLaCuenta }>Salir</Button>
+      <Button onClick={ googleAuth }> Acceder por google </Button>
+      <Button onClick={ mox }> Mostrar </Button>
+
+      
+
+      <form onSubmit={ userLoginByMail } >
+        <input type='email' placeholder='Mail' name='mail' onChange={inputEnter} value={inputValue.mail} />
+        <input type='password' placeholder='Password' name='password' onChange={inputEnter} value={inputValue.password} />
+        <Button type='submit'>
+          Iniciar Sesión
+        </Button>
+      </form>
+
+
+      <form  >
+        <input type='file' accept='.png,.jpeg,.jpg,.svg' placeholder='image' name='image' onChange={inputSendImage}  />
+        <Button type='submit'>
+          Iniciar Sesión
+        </Button>
+      </form>
+
+      <img src={`${inputValue.image}`} />
     </>
     
 
