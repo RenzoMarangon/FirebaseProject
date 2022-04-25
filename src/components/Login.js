@@ -116,35 +116,6 @@ const Login = () => {
     }
 
 
-    const userRegisterByMail = (e) => {
-      e.preventDefault();
-
-      const email = inputValue.mail;
-      const password = inputValue.password;
-      const auth = getAuth(app);
-
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          
-          const user = userCredential.user;
-          console.log(user)
-        })
-        .catch((error) => {
-          console.log(error.code)
-          console.log(error.message)
-        });
-
-
-        const user = {
-          name:inputValue.name,
-          mail:inputValue.mail,
-          image:''
-         }
-  
-        userRegister(inputValue.mail,user)
-    }
-
-
     const mostrar = () => {
       const ob = {
         name:'chchcich',
@@ -175,15 +146,6 @@ const Login = () => {
           image:url,
         })
       })
-
-
-
-      // setInputValue({
-      //   ...inputValue,
-      //   image:imgRef.name,
-      // })
-
-      
     }
 
     const inputEnter = (e) => {

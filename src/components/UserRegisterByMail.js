@@ -1,18 +1,23 @@
-import React,{ useState,  } from 'react'
+import React,{ useState, useContext, useEffect } from 'react'
 import db,{ app } from '../firebase';
-import { signInWithEmailAndPassword, getAuth, createUserWithEmailAndPassword, userRegByMail  } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, userRegByMail  } from 'firebase/auth';
 import LoginContext from '../context/LoginContext';
 import { Button } from '@mui/material';
 import { doc, setDoc, collection } from 'firebase/firestore';
 
 const UserRegisterByMail = () => {
 
+     const { userProvider, setUserProvider } = useContext(LoginContext);
+
     const [ inputValue, setInputValue ] = useState({
         name:'',
         mail:'',
         image:'',
-        password:''
+        password:'',
+        repeatPassword:''
       });
+
+
 
     const userRegByMail = (e) => {
         e.preventDefault();
@@ -26,20 +31,31 @@ const UserRegisterByMail = () => {
             
             const user = userCredential.user;
             console.log(user)
+
+
+            const userBuyer = {
+              name:inputValue.name,
+              mail:inputValue.mail,
+              image:userProvider.buyer.image,
+            }
+  
+            setUserProvider({   
+              ...userProvider,
+              buyer:userBuyer,
+            })
+  
+             
+            userRegister(userBuyer.mail,userBuyer)
+            
           })
           .catch((error) => {
             console.log(error.code)
             console.log(error.message)
           });
   
-  
-          const usr = {
-            name:inputValue.name,
-            mail:inputValue.mail,
-            image:''
-           }
-           
-          userRegister(inputValue.mail,usr)
+
+
+          console.log(userProvider)
       }
 
       const userRegister = async( userId, userData ) => {
@@ -49,9 +65,6 @@ const UserRegisterByMail = () => {
         console.log('registro etsitoso')
       }
 
-
-
-    
 
     const inputEnter = (e) => {
         const { name, value } = e.target;
