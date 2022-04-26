@@ -12,7 +12,6 @@ const UserRegisterByMail = () => {
     const [ inputValue, setInputValue ] = useState({
         name:'',
         mail:'',
-        image:'',
         password:'',
         repeatPassword:''
       });
@@ -27,24 +26,18 @@ const UserRegisterByMail = () => {
         const auth = getAuth(app);
   
         createUserWithEmailAndPassword(auth, email, password)
-          .then((userCredential) => {
+          .then(() => {
             
-            const user = userCredential.user;
-            console.log(user)
-
 
             const userBuyer = {
               name:inputValue.name,
-              mail:inputValue.mail,
-              image:userProvider.buyer.image,
+              mail:inputValue.mail,            
             }
   
             setUserProvider({   
-              ...userProvider,
-              buyer:userBuyer,
+              userBuyer
             })
   
-             
             userRegister(userBuyer.mail,userBuyer)
             
           })
@@ -52,8 +45,6 @@ const UserRegisterByMail = () => {
             console.log(error.code)
             console.log(error.message)
           });
-  
-
 
           console.log(userProvider)
       }

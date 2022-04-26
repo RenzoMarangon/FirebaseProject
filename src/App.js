@@ -6,6 +6,8 @@ import UserRegisterByMail from './components/UserRegisterByMail';
 import UserSgnOut from './components/UserSgnOut';
 import ImageUploader from './components/ImageUploader';
 import ProfilePicture from './components/ProfilePicture';
+import UserLoginGoogle from './components/UserLoginGoogle';
+import LoginByMail from './components/LoginByMail';
 
 function App() {
   return (
@@ -13,9 +15,11 @@ function App() {
       <LoginProvider>
         {/* <Login /> */}
         <UserRegisterByMail />
-        {/* <UserSgnOut /> */}
+        <UserSgnOut />
         <ImageUploader />
-        <ProfilePicture />
+        {/* <ProfilePicture /> */}
+        <LoginByMail />
+        {/* <UserLoginGoogle /> */}
       </LoginProvider>
 
     </div>

@@ -12,6 +12,11 @@ const ImageUploader = () => {
 
     const [ imageFile, setImageFile ] = useState({});
 
+    const [ URL, setURL ] = useState('');
+
+    useEffect(()=>{
+        URL.length > 1 && userRegister(userProvider.mail, userProvider);
+    },[URL])
 
     const inputSendImage = (e) => {
         const imgRef = e.target.files[0]
@@ -26,7 +31,7 @@ const ImageUploader = () => {
         uploadBytes(strgeageRef, imageFile).then((snapshot) => {
             console.log('Correctamente subido');
             getURL();   
-            
+           
         });
 
         
@@ -39,21 +44,14 @@ const ImageUploader = () => {
         const strgeageRef = ref(strge, `/profilePictures/${imageFile.name}`);
 
         getDownloadURL(strgeageRef).then((url)=>{
-            const userURL = { ...userProvider.buyer, image:url }
 
+            console.log(userProvider)
             setUserProvider({
                 ...userProvider,
-                buyer: userURL
+                image:url
             })
-
-
-            const userWithImage = { 
-                name:userProvider.name,
-                mail:userProvider.mail,
-                image:url,
-            }
             
-            userRegister(userURL.mail,userURL)
+            setURL(url);
            
         })
 

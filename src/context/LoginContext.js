@@ -5,14 +5,9 @@ const LoginContext = createContext();
 const LoginProvider = ({ children }) => {
 
     const [ userProvider, setUserProvider ] = useState({
-        buyer:{
-            name : '',
-            mail : '',
-            image : '',
-        },
-        itemsInCart : [],
-        orders : [],
-        favorites : [],
+        name : '',
+        mail : '',
+        image : '',
     });
 
 
